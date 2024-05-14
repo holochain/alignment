@@ -78,7 +78,7 @@ export default defineConfig({
         },
         source: {
           type: "https",
-          url: "https://github.com/holochain-apps/gamez/releases/download/v0.4.1/gamez.webhapp"
+          url: "https://github.com/holochain-apps/gamez/releases/download/v0.4.2/gamez.webhapp"
         },
       },
       {
