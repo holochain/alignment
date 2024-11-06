@@ -1,4 +1,4 @@
-import { EntryHashB64, AgentPubKeyB64, AppAgentClient, RoleName, encodeHashToBase64, decodeHashFromBase64, AgentPubKey, DnaHash, EntryHash } from '@holochain/client';
+import { EntryHashB64, AgentPubKeyB64, AppClient, RoleName, encodeHashToBase64, decodeHashFromBase64, AgentPubKey, DnaHash, EntryHash } from '@holochain/client';
 import { AgentPubKeyMap, EntryRecord } from '@holochain-open-dev/utils';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 import cloneDeep from 'lodash/cloneDeep';
@@ -24,7 +24,7 @@ import {
   Progress,
 } from './types';
 import { Action, ActionHash } from '@holochain/client';
-import { WeClient } from '@lightningrodlabs/we-applet';
+import { WeaveClient } from '@lightningrodlabs/we-applet';
 import { getMyDna } from './util';
 
 export type HowConfig = {
@@ -73,8 +73,8 @@ export class HowStore {
   )
 
   constructor(
-    public weClient: WeClient|undefined,
-    protected client: AppAgentClient,
+    public weClient: WeaveClient|undefined,
+    protected client: AppClient,
     roleName: RoleName,
     zomeName = 'how',
 

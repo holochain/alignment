@@ -14,8 +14,8 @@ import '@holochain-open-dev/profiles/dist/elements/profile-list-item-skeleton.js
 import {
   ActionHash,
   AdminWebsocket,
-  AppAgentClient,
-  AppAgentWebsocket,
+  AppWebsocket,
+  AppWebsocketConnectionOptions,
   encodeHashToBase64,
 } from '@holochain/client';
 import { provide } from '@lit/context';
@@ -28,7 +28,7 @@ import {howContext} from "./types"
 import { localized, msg } from '@lit/localize';
 
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import { WeClient, isWeContext, initializeHotReload, WAL, Hrl } from '@lightningrodlabs/we-applet';
+import { WeaveClient, isWeContext, initializeHotReload, WAL, Hrl } from '@lightningrodlabs/we-applet';
 import { appletServices } from './we';
 import { HowUnit } from './elements/how-unit';
 import { HowDocument } from './elements/how-document';
@@ -76,7 +76,8 @@ export class HolochainApp extends ScopedElementsMixin(LitElement) {
         console.warn("Could not initialize applet hot-reloading. This is only expected to work in a We context in dev mode.")
       }
     }
-
+    
+    let tokenResp;
     if (!isWeContext()) {
       const adminPort : string = import.meta.env.VITE_ADMIN_PORT
       const appPort : string = import.meta.env.VITE_APP_PORT
@@ -85,18 +86,23 @@ export class HolochainApp extends ScopedElementsMixin(LitElement) {
       if (adminPort) {
         const adminWebsocket = await AdminWebsocket.connect({url: new URL(`ws://localhost:${adminPort}`)})
         const x = await adminWebsocket.listApps({})
+        tokenResp = await adminWebsocket.issueAppAuthenticationToken({
+          installed_app_id: "how",
+        });
         const cellIds = await adminWebsocket.listCellIds()
         await adminWebsocket.authorizeSigningCredentials(cellIds[0])
       }
-      const appAgentClient = await AppAgentWebsocket.connect(appId,{url: new URL(url)})
+      const params: AppWebsocketConnectionOptions = { url: new URL(url) };
+      if (tokenResp) params.token = tokenResp.token;
+
+      const appAgentClient = await AppWebsocket.connect(params)
     
       this._howStore = new HowStore(undefined, appAgentClient, "how")
       
-      this._profilesStore = new ProfilesStore(
-        new ProfilesClient(appAgentClient, 'how'), config
-      );
+      //@ts-ignore
+      this._profilesStore = new ProfilesStore(new ProfilesClient(appAgentClient, 'how'), config);
     } else {
-        const weClient = await WeClient.connect(appletServices);
+        const weClient = await WeaveClient.connect(appletServices);
 
         switch (weClient.renderInfo.type) {
           case "applet-view":
@@ -111,29 +117,35 @@ export class HolochainApp extends ScopedElementsMixin(LitElement) {
                 }
                 break;
               case "asset":
-                switch (weClient.renderInfo.view.roleName) {
-                  case "how":
-                    switch (weClient.renderInfo.view.integrityZomeName) {
-                      case "how_integrity":
-                        switch (weClient.renderInfo.view.entryType) {
-                          case "unitx":
-                            this.renderType = RenderType.Unit
-                            this.wal = weClient.renderInfo.view.wal
-                            break;
-                          case "document":
-                            this.renderType = RenderType.Document
-                            this.wal = weClient.renderInfo.view.wal
-                            break;
-                          default:
-                            throw new Error("Unknown entry type:"+weClient.renderInfo.view.entryType);
-                        }
-                        break;
-                      default:
-                        throw new Error("Unknown integrity zome:"+weClient.renderInfo.view.integrityZomeName);
-                    }
-                    break;
-                  default:
-                    throw new Error("Unknown role name:"+weClient.renderInfo.view.roleName);
+                if (!weClient.renderInfo.view.recordInfo) {
+                  throw new Error(
+                    "How does not implement asset views pointing to DNAs instead of Records."
+                  );
+                } else {
+                  switch (weClient.renderInfo.view.recordInfo.roleName) {
+                    case "how":
+                      switch (weClient.renderInfo.view.recordInfo.integrityZomeName) {
+                        case "how_integrity":
+                          switch (weClient.renderInfo.view.recordInfo.entryType) {
+                            case "unitx":
+                              this.renderType = RenderType.Unit
+                              this.wal = weClient.renderInfo.view.wal
+                              break;
+                            case "document":
+                              this.renderType = RenderType.Document
+                              this.wal = weClient.renderInfo.view.wal
+                              break;
+                            default:
+                              throw new Error("Unknown entry type:"+weClient.renderInfo.view.recordInfo.entryType);
+                          }
+                          break;
+                        default:
+                          throw new Error("Unknown integrity zome:"+weClient.renderInfo.view.recordInfo.integrityZomeName);
+                      }
+                      break;
+                    default:
+                      throw new Error("Unknown role name:"+weClient.renderInfo.view.recordInfo.roleName);
+                  }
                 }
                 break;
               default:
@@ -156,9 +168,9 @@ export class HolochainApp extends ScopedElementsMixin(LitElement) {
             throw new Error("Unknown render view type");
   
         }  
-        //@ts-ignore
         const client = weClient.renderInfo.appletClient;
-        this._howStore = new HowStore(weClient, client, "how")
+      //@ts-ignore
+      this._howStore = new HowStore(weClient, client, "how")
         if (this.renderType == RenderType.Unit) this._howStore.pullUnits()
         else if (this.renderType == RenderType.Document) {
           await this._howStore.pullUnits()

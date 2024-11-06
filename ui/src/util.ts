@@ -1,4 +1,4 @@
-import { AppAgentClient, CellType, decodeHashFromBase64, DnaHash, encodeHashToBase64, type EntryHash } from "@holochain/client";
+import { AppClient, CellType, decodeHashFromBase64, DnaHash, encodeHashToBase64, type EntryHash } from "@holochain/client";
 
 export type WALUrl = string
 
@@ -12,7 +12,7 @@ export const hashEqual = (a:EntryHash, b:EntryHash) : boolean => {
   return true;
 }
 
-export const getMyDna = async (role:string, client: AppAgentClient) : Promise<DnaHash|undefined>  => {
+export const getMyDna = async (role:string, client: AppClient) : Promise<DnaHash|undefined>  => {
   const appInfo = await client.appInfo();
   if (appInfo) {
     const dnaHash = (appInfo.cell_info[role][0] as any)[
