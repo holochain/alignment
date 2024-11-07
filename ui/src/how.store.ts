@@ -1,4 +1,4 @@
-import { EntryHashB64, AgentPubKeyB64, AppClient, RoleName, encodeHashToBase64, decodeHashFromBase64, AgentPubKey, DnaHash, EntryHash } from '@holochain/client';
+import { EntryHashB64, AgentPubKeyB64, AppClient, RoleName, encodeHashToBase64, decodeHashFromBase64, AgentPubKey, DnaHash, EntryHash, AppSignal, Signal, SignalType } from '@holochain/client';
 import { AgentPubKeyMap, EntryRecord } from '@holochain-open-dev/utils';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 import cloneDeep from 'lodash/cloneDeep';
@@ -24,7 +24,7 @@ import {
   Progress,
 } from './types';
 import { Action, ActionHash } from '@holochain/client';
-import { WeaveClient } from '@lightningrodlabs/we-applet';
+import { WeaveClient } from '@theweave/api';
 import { getMyDna } from './util';
 
 export type HowConfig = {
@@ -85,17 +85,23 @@ export class HowStore {
     getMyDna(roleName, client).then(res=>{
       this.dnaHash = res
     })
-    client.on( 'signal', signal => {
-      console.log("SIGNAL",signal.payload)
-      const payload  = signal.payload as HowSignal
-      switch(payload.message.type) {
-      case "NewUnit":
-        if (!get(this.units)[payload.unitHash]) {
-        //  this.updateUnitFromEntry(new EntryRecord<Unit>(payload.message.content))
+  }
+
+  async initialize() {
+    this.client.on( 'signal', async (signal:Signal) => {
+      if (SignalType.App in signal) {
+        console.log("SIGNAL",signal.App.payload)
+        const payload  = signal.App.payload as HowSignal
+        switch(payload.message.type) {
+        case "NewUnit":
+          if (!get(this.units)[payload.unitHash]) {
+          //  this.updateUnitFromEntry(new EntryRecord<Unit>(payload.message.content))
+          }
+          break;
         }
-        break;
       }
     })
+
   }
 
   // get all of the sections needed for a specific process by getting the template contents

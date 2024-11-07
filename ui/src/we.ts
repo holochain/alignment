@@ -1,5 +1,5 @@
 import { type AppClient, type RoleName, type ZomeName, decodeHashFromBase64, encodeHashToBase64 } from '@holochain/client';
-import type { AppletHash, AppletServices, AssetInfo, RecordInfo, WAL, WeaveServices } from '@lightningrodlabs/we-applet';
+import type { AppletHash, AppletServices, AssetInfo, RecordInfo, WAL, WeaveServices } from '@theweave/api';
 import { HowStore } from './how.store';
 import { getMyDna } from './util';
 
@@ -20,8 +20,8 @@ export const appletServices: AppletServices = {
     },
     getAssetInfo: async (
       appletClient: AppClient,
-      recordInfo: RecordInfo,
-      wal: WAL
+      wal: WAL,
+      recordInfo?: RecordInfo,
     ): Promise<AssetInfo | undefined> => {
         if (recordInfo) {
             const store = new HowStore(undefined, appletClient, "how")

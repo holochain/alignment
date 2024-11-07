@@ -28,7 +28,7 @@ import {howContext} from "./types"
 import { localized, msg } from '@lit/localize';
 
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import { WeaveClient, isWeContext, initializeHotReload, WAL, Hrl } from '@lightningrodlabs/we-applet';
+import { WeaveClient, isWeContext, initializeHotReload, WAL, Hrl } from '@theweave/api';
 import { appletServices } from './we';
 import { HowUnit } from './elements/how-unit';
 import { HowDocument } from './elements/how-document';

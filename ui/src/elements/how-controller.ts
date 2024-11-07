@@ -41,7 +41,7 @@ import {EntryHashB64, encodeHashToBase64} from "@holochain/client";
 import { consume } from '@lit/context';
 import { HowMyProfileDialog } from "./how-my-profile-dialog";
 import { EntryRecord } from "@holochain-open-dev/utils";
-import { isWeContext } from "@lightningrodlabs/we-applet";
+import { isWeContext } from "@theweave/api";
 //import { HowSettings } from "./how-settings";
 //import './how-settings.js';
 

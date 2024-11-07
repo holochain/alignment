@@ -27,7 +27,7 @@ import { HowConfirm } from "./how-confirm";
 import { CommentControl, Control } from "../controls";
 import {until} from 'lit-html/directives/until.js';
 import { WALUrl } from "../util";
-import { weaveUrlFromWal, weaveUrlToWAL } from "@lightningrodlabs/we-applet";
+import { weaveUrlFromWal, weaveUrlToWAL } from "@theweave/api";
 
 /**
  * @element how-document
